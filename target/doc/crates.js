@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["itoa","json_size","ryu","serde","serde_json"];
