@@ -27,24 +27,24 @@ To use the `sizeof_val` function, follow these steps:
 2. **Define the `sizeof_val` function:**
 
    ```rust
+   use serde_json::Value;
+   use std::mem::size_of;
    pub fn sizeof_val(v: &serde_json::Value) -> usize {
-       std::mem::size_of::<serde_json::Value>()
-           + match v {
-               serde_json::Value::Null => 0,
-               serde_json::Value::Bool(_) => 0,
-               serde_json::Value::Number(_) => 0,
-               serde_json::Value::String(s) => s.capacity(),
-               serde_json::Value::Array(a) => a.iter().map(sizeof_val).sum(),
-               serde_json::Value::Object(o) => o
-                   .iter()
-                   .map(|(k, v)| {
-                       std::mem::size_of::<String>()
-                           + k.capacity()
-                           + sizeof_val(v)
-                           + std::mem::size_of::<usize>() * 3 // crude approximation of overhead
-                   })
-                   .sum(),
-           }
+    size_of::<serde_json::Value>()
+        + match v {
+            Value::Null => 0,
+            Value::Bool(_) => 0,
+            Value::Number(_) => 0, // incorrect if arbitrary_precision is enabled
+            Value::String(s) => s.capacity(),
+            Value::Array(a) => a.iter().map(sizeof_val).sum(),
+            Value::Object(o) => o
+                .iter()
+                .map(|(k, v)| {
+                    size_of::<String>() + k.capacity() + sizeof_val(v) + size_of::<usize>() * 3
+                    //crude approximation, each map entry has 3 words of overhead
+                })
+                .sum(),
+        }
    }
    ```
 
