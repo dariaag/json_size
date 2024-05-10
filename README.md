@@ -1,6 +1,7 @@
 # sizeof_val - Estimate JSON Value Size
 
 `sizeof_val` is a Rust function that calculates an approximate size of a `serde_json::Value` in bytes. It estimates the memory consumption of various types of JSON data and their nested structures.
+[Original code](https://stackoverflow.com/questions/76454260/rust-serde-get-runtime-heap-size-of-vecserde-jsonvalue)
 
 ## Usage
 
