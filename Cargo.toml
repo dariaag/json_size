@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "A crate to calculate the size of a JSON object"
 authors = ["Daria Agad"]
+repository = "https://github.com/dariaag/json_size"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
