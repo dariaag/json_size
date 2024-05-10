@@ -72,9 +72,9 @@ use serde_json::{Value, json};
 
 fn main() {
     let val = json!({
-        "name": "OpenAI",
-        "founded": 2015,
-        "services": ["chatbot", "API"]
+        "name": "bread",
+        "amount": 2,
+
     });
 
     let size = sizeof_val(&val);
