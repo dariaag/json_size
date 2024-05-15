@@ -2,7 +2,7 @@
 
 [package]
 name = "json_size"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license = "MIT"
 description = "A crate to calculate the size of a JSON object"
