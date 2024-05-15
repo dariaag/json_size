@@ -35,20 +35,21 @@
 /// ## Implementation
 use serde_json::Value;
 use std::mem::size_of;
-pub fn sizeof_val(v: &serde_json::Value) -> usize {
-    size_of::<serde_json::Value>()
+
+const STRING_OVERHEAD: usize = size_of::<String>();
+const MAP_ENTRY_OVERHEAD: usize = size_of::<usize>() * 3;
+
+pub fn sizeof_val(v: &Value) -> usize {
+    size_of::<Value>()
         + match v {
             Value::Null => 0,
             Value::Bool(_) => 0,
             Value::Number(_) => 0, // incorrect if arbitrary_precision is enabled
-            Value::String(s) => s.capacity(),
+            Value::String(s) => STRING_OVERHEAD + s.capacity(),
             Value::Array(a) => a.iter().map(sizeof_val).sum(),
             Value::Object(o) => o
                 .iter()
-                .map(|(k, v)| {
-                    size_of::<String>() + k.capacity() + sizeof_val(v) + size_of::<usize>() * 3
-                    //crude approximation, each map entry has 3 words of overhead
-                })
+                .map(|(k, v)| STRING_OVERHEAD + k.capacity() + sizeof_val(v) + MAP_ENTRY_OVERHEAD)
                 .sum(),
         }
 }
@@ -80,8 +81,9 @@ mod tests {
     #[test]
     fn test_sizeof_val_string() {
         let val = json!("Hello, world!");
-        let expected_size =
-            std::mem::size_of::<serde_json::Value>() + String::from("Hello, world!").capacity();
+        let expected_size = std::mem::size_of::<serde_json::Value>()
+            + String::from("Hello, world!").capacity()
+            + STRING_OVERHEAD;
         assert_eq!(sizeof_val(&val), expected_size);
     }
 
