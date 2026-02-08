@@ -95,3 +95,49 @@ Feel free to submit pull requests or open issues for any improvements or bugs re
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+# json_size
+
+Estimate the in-memory heap size of `serde_json::Value` trees.
+
+[![CI](https://github.com/dariaag/json_size/actions/workflows/ci.yml/badge.svg)](...) 
+[![crates.io](https://img.shields.io/crates/v/json_size.svg)](...) 
+[![docs.rs](https://docs.rs/json_size/badge.svg)](...) 
+
+## When to use this
+
+- Enforcing payload size limits in web services before processing
+- Cache eviction decisions based on memory pressure  
+- Logging and diagnostics for JSON-heavy pipelines
+
+## Quick start
+```toml
+[dependencies]
+json_size = "0.2"
+```
+```rust
+use json_size::{sizeof_val, exceeds_size, size_breakdown};
+use serde_json::json;
+
+let v = json!({"users": [{"name": "alice"}, {"name": "bob"}]});
+
+// Total estimated heap size
+let bytes = sizeof_val(&v);
+
+// Fast check against a budget (short-circuits on large trees)
+if exceeds_size(&v, 1_048_576) {
+    eprintln!("payload exceeds 1MB limit");
+}
+
+// Diagnostic breakdown
+let bd = size_breakdown(&v);
+println!("{} nodes, max depth {}, {}B in strings", 
+    bd.node_count, bd.max_depth, bd.strings);
+```
+
+## Accuracy
+
+[honest description of what it does and doesn't capture]
+
+## License
+
+MIT
