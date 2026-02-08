@@ -90,7 +90,14 @@ fn exceeds_size_inner(v: &Value, limit: usize, acc: &mut usize) -> bool {
         return true;
     }
     match v {
-        Value::Null | Value::Bool(_) | Value::Number(_) => false,
+        Value::Null | Value::Bool(_) => false,
+        Value::Number(_) => {
+            #[cfg(feature = "arbitrary_precision")]
+            {
+                *acc += 16;
+            }
+            *acc > limit
+        }
         Value::String(s) => {
             *acc += s.capacity();
             *acc > limit
@@ -140,7 +147,13 @@ fn size_breakdown_inner(v: &Value, depth: usize, bd: &mut SizeBreakdown) {
     bd.total += size_of::<Value>();
 
     match v {
-        Value::Null | Value::Bool(_) | Value::Number(_) => {}
+        Value::Null | Value::Bool(_) => {}
+        Value::Number(_) => {
+            #[cfg(feature = "arbitrary_precision")]
+            {
+                bd.total += 16;
+            }
+        }
         Value::String(s) => {
             bd.total += s.capacity();
             bd.strings += s.capacity();
@@ -180,9 +193,14 @@ mod tests {
     }
 
     #[test]
+
     fn test_sizeof_val_number() {
         let val = json!(42);
-        assert_eq!(sizeof_val(&val), std::mem::size_of::<serde_json::Value>());
+        #[cfg(feature = "arbitrary_precision")]
+        let expected = std::mem::size_of::<serde_json::Value>() + 16;
+        #[cfg(not(feature = "arbitrary_precision"))]
+        let expected = std::mem::size_of::<serde_json::Value>();
+        assert_eq!(sizeof_val(&val), expected);
     }
 
     #[test]
