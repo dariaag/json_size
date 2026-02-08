@@ -24,6 +24,11 @@
 //! assert!(bytes > 0);
 //! ```
 
+use serde_json::Value;
+use std::mem::size_of;
+
+const STRING_OVERHEAD: usize = size_of::<String>();
+const MAP_ENTRY_OVERHEAD: usize = size_of::<usize>() * 3;
 /// Returns an estimate of the total heap memory consumed by `v`, in bytes.
 ///
 /// The estimate includes the stack-size of the root `Value` plus the heap
@@ -38,12 +43,6 @@
 ///   numbers as heap-allocated strings.
 /// - `Array` capacity beyond its length is not counted (only the elements
 ///   that exist are traversed).
-
-use serde_json::Value;
-use std::mem::size_of;
-
-const STRING_OVERHEAD: usize = size_of::<String>();
-const MAP_ENTRY_OVERHEAD: usize = size_of::<usize>() * 3;
 pub fn sizeof_val(v: &Value) -> usize {
     size_of::<Value>()
         + match v {
@@ -63,9 +62,7 @@ pub fn sizeof_val(v: &Value) -> usize {
             Value::Array(a) => a.iter().map(sizeof_val).sum(),
             Value::Object(o) => o
                 .iter()
-                .map(|(k, v)| {
-                    STRING_OVERHEAD + k.capacity() + sizeof_val(v) + MAP_ENTRY_OVERHEAD
-                })
+                .map(|(k, v)| STRING_OVERHEAD + k.capacity() + sizeof_val(v) + MAP_ENTRY_OVERHEAD)
                 .sum(),
         }
 }
@@ -108,7 +105,6 @@ fn exceeds_size_inner(v: &Value, limit: usize, acc: &mut usize) -> bool {
         }),
     }
 }
-
 
 /// Detailed size breakdown of a [`Value`] tree.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -165,8 +161,6 @@ fn size_breakdown_inner(v: &Value, depth: usize, bd: &mut SizeBreakdown) {
     }
 }
 
-
-
 #[cfg(test)]
 
 mod tests {
@@ -192,13 +186,13 @@ mod tests {
     }
 
     #[test]
-    
-fn test_sizeof_val_string() {
-    let val = json!("Hello, world!");
-    let expected_size = std::mem::size_of::<serde_json::Value>()
-        + String::from("Hello, world!").capacity();
-    assert_eq!(sizeof_val(&val), expected_size);
-}
+
+    fn test_sizeof_val_string() {
+        let val = json!("Hello, world!");
+        let expected_size =
+            std::mem::size_of::<serde_json::Value>() + String::from("Hello, world!").capacity();
+        assert_eq!(sizeof_val(&val), expected_size);
+    }
 
     #[test]
     fn test_sizeof_val_array() {
@@ -236,8 +230,6 @@ fn test_sizeof_val_string() {
             + std::mem::size_of::<usize>() * 6; // Assuming each object entry overhead is 3 usize
         assert_eq!(sizeof_val(&val), expected_size);
     }
-
-
 
     #[test]
     fn null_is_just_the_enum() {
@@ -329,12 +321,4 @@ fn test_sizeof_val_string() {
         assert!(bd.strings >= 10_000);
         assert!(bd.strings as f64 / bd.total as f64 > 0.8);
     }
-
-
-
-
-
-
-
-    
 }

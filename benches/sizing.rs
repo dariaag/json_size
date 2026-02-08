@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use json_size::{sizeof_val, exceeds_size, size_breakdown};
+use json_size::{exceeds_size, size_breakdown, sizeof_val};
 use serde_json::json;
 
 fn build_deep_json(depth: usize) -> serde_json::Value {
